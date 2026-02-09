@@ -1,12 +1,6 @@
 export enum BaseStatus {
-  DRAFT = 'DRAFT',
-  PENDING = 'PENDING',
-  REVIEWING = 'REVIEWING',
-  APPROVED = 'APPROVED',
-  PRE_APPROVED = 'PRE_APPROVED',
-  REJECTED = 'REJECTED',
-  ARCHIVED = 'ARCHIVED',
-  SUSPEND = 'SUSPEND',
+  SOLD_OUT = 'SOLD_OUT',
+  AVAILABLE = 'AVAILABLE',
 }
 
 export type Maybe<T> = T | null;
