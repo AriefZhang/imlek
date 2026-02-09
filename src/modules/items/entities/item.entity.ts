@@ -4,11 +4,13 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
 import { BaseEntity } from '../../../common/abstracts';
 import { Stand } from 'src/modules/stands/entities/stand.entity';
+import { ItemTransaction } from 'src/modules/itemTransactions/entities/itemTransaction.entity';
 
 @Entity()
 export class Item extends BaseEntity {
@@ -25,10 +27,14 @@ export class Item extends BaseEntity {
   quantity: number;
 
   @Column()
-  description: string;
+  price: number;
 
   @Exclude()
   @ManyToOne((_type) => Stand, (stand) => stand.id)
   @JoinColumn({ name: 'stand_id' })
   stand: Stand;
+
+  @Exclude()
+  @OneToMany((_type) => ItemTransaction, (transaction) => transaction.item)
+  transaction: ItemTransaction[];
 }
