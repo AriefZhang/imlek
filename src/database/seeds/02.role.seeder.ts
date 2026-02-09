@@ -1,4 +1,5 @@
-import { Seeder, SeederFactoryManager } from 'typeorm-extension';
+import { SeederFactoryManager } from 'typeorm-extension';
+import type { Seeder } from 'typeorm-extension';
 import { DataSource } from 'typeorm';
 
 import { UserRoles } from '../../common/types';
@@ -12,7 +13,7 @@ export default class RoleSeeder implements Seeder {
       INSERT INTO "role" (name)
         VALUES
         ('${UserRoles.SUPER_ADMIN}'),
-        ('${UserRoles.ADMIN}'),
+        ('${UserRoles.ADMIN}');
     `);
   }
 }

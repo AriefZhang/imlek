@@ -1,15 +1,17 @@
-import { join } from 'path'
-import { config } from 'dotenv'
-import { DataSource, DataSourceOptions } from 'typeorm'
-import { SeederOptions } from 'typeorm-extension'
+import { join } from 'path';
+import { config } from 'dotenv';
+import { DataSource } from 'typeorm';
+import type { DataSourceOptions } from 'typeorm';
+import type { SeederOptions } from 'typeorm-extension';
 
-config()
+config();
 
 const dataSourceOptions: DataSourceOptions & SeederOptions = {
   type: 'postgres',
-  entities: [
-    join(__dirname, '../../modules', '**', '/entities', '*.entity.{ts,js}'),
-  ],
+  // entities: [
+  //   join(__dirname, '../../modules', '**', '/entities', '*.entity.{ts,js}'),
+  // ],
+  entities: ['dist/modules/**/entities/*.entity.ts'],
   synchronize: process.env.NODE_ENV === 'development',
   host: process.env.DATABASE_HOST,
   port: Number(process.env.DATABASE_PORT),
@@ -17,7 +19,7 @@ const dataSourceOptions: DataSourceOptions & SeederOptions = {
   password: process.env.DATABASE_PASSWORD,
   database: process.env.DATABASE_DB_NAME,
   // url: process.env.DATABASE_URL,
-  seeds: ['dist/database/seeds/*.seeder.{js,ts}'],
-}
+  seeds: ['src/database/seeds/*.seeder.{js,ts}'],
+};
 
-export const dataSource = new DataSource(dataSourceOptions)
+export const dataSource = new DataSource(dataSourceOptions);

@@ -1,4 +1,5 @@
-import { Seeder, SeederFactoryManager } from 'typeorm-extension';
+import { SeederFactoryManager } from 'typeorm-extension';
+import type { Seeder } from 'typeorm-extension';
 import { DataSource } from 'typeorm';
 
 export default class TruncateTableSeeder implements Seeder {
@@ -13,7 +14,7 @@ export default class TruncateTableSeeder implements Seeder {
         "stand",
         "item",
         "transaction",
-        "item_transaction",
+        "item_transaction"
       RESTART IDENTITY CASCADE;
     `);
   }

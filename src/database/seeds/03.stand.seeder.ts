@@ -1,7 +1,8 @@
-import { Seeder, SeederFactoryManager } from 'typeorm-extension';
+import { SeederFactoryManager } from 'typeorm-extension';
+import type { Seeder } from 'typeorm-extension';
 import { DataSource } from 'typeorm';
 
-export default class CountrySeeder implements Seeder {
+export default class StandSeeder implements Seeder {
   public async run(
     dataSource: DataSource,
     factoryManager: SeederFactoryManager,
