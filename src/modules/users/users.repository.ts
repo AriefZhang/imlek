@@ -1,20 +1,13 @@
-import {
-  Injectable,
-  NotFoundException,
-  Logger,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { DataSource, EntityManager, Repository } from 'typeorm';
 
 import { User } from './entities/user.entity';
 
 import { AuthService } from '../auth/auth.service';
 
-import { JwtPayload, RoleId, UserRoles } from '../../common/types';
+import { RoleId, UserRoles } from '../../common/types';
 import { UserCredentialsDto } from './dto';
 import { encryptPassword } from '../../common/helpers';
-import { handleError } from '../../common/errors';
-import { jwtOptionsWithSecret } from '../../config';
 import { PageDto, PageMetaDto, PageOptionsDto } from 'src/app.dtos';
 
 @Injectable()
@@ -28,7 +21,10 @@ export class UsersRepository extends Repository<User> {
   }
 
   private async getUserByEmail(email: string): Promise<User> {
-    const user = await this.findOneBy({ email });
+    const user = await this.findOne({
+      select: ['id', 'email', 'role'],
+      where: { email },
+    });
 
     if (!user) {
       throw new NotFoundException('User not found');
@@ -70,11 +66,14 @@ export class UsersRepository extends Repository<User> {
       password: hashedPassword,
       role: defaultRoles,
     });
-    return await userManager.save(user);
+    await userManager.save(user);
+
+    return await this.getUserByEmail(email);
   }
 
   async getUserData(id: string): Promise<User> {
     const user = await this.findOne({
+      select: ['id', 'email', 'role'],
       where: { id },
       relations: {
         role: true,
