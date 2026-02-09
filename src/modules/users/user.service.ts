@@ -1,11 +1,8 @@
 import {
   Injectable,
   Logger,
-  BadRequestException,
   ConflictException,
-  ForbiddenException,
   UnauthorizedException,
-  NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
@@ -13,7 +10,6 @@ import { DataSource } from 'typeorm';
 import { UsersRepository } from './users.repository';
 
 import { User } from './entities/user.entity';
-import { Role } from '../roles/entities/role.entity';
 
 import { AuthService } from '../auth/auth.service';
 
