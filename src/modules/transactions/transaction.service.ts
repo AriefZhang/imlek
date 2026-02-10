@@ -16,6 +16,7 @@ import { handleError } from 'src/common/errors';
 import { ItemTransaction } from '../itemTransactions/entities/itemTransaction.entity';
 import { User } from '../users/entities/user.entity';
 import { PageDto, PageMetaDto, PageOptionsDto } from 'src/app.dtos';
+import { UpdateItemTransactionDto } from './dto/update-item-transaction.dto';
 
 @Injectable()
 export class TransactionService {
@@ -65,20 +66,16 @@ export class TransactionService {
   }
 
   async findTransaction(id: number) {
-    try {
-      const tx = await this.getRepository().findOne({
-        where: { id },
-        relations: { itemTransactions: { item: true } },
-      });
+    const tx = await this.getRepository().findOne({
+      where: { id },
+      relations: { itemTransactions: { item: true } },
+    });
 
-      if (!tx) {
-        throw new NotFoundException('Transaction not found');
-      }
-
-      return tx;
-    } catch (error) {
-      handleError(error);
+    if (!tx) {
+      throw new NotFoundException('Transaction not found');
     }
+
+    return tx;
   }
 
   async handleCreateItemTransaction(
@@ -112,11 +109,16 @@ export class TransactionService {
       where: { id: In(items.map((item) => item.id)) },
     });
 
-    const itemTransactions = await this.handleCreateItemTransaction(
+    const itemsTransaction = await this.handleCreateItemTransaction(
       items,
       selectedItems,
       tx,
       manager,
+    );
+
+    const totalAmount = itemsTransaction.reduce(
+      (acc, item) => acc + item.totalAmountPerItem,
+      0,
     );
 
     const updatedItem = selectedItems.map((item) => {
@@ -130,26 +132,47 @@ export class TransactionService {
       return { ...item, quantity: newQuantity };
     });
 
-    const finalItems = await itemManager.save(updatedItem);
-
-    return finalItems;
+    await itemManager.save(updatedItem);
+    return { totalAmount, itemsTransaction };
   }
 
   async create(user: User, createTransactionDto: CreateTransactionDto) {
     const { queryRunner, manager } = this.getQueryManagerWithTransaction();
     try {
-      const { items, totalAmount, paymentMethod, note } = createTransactionDto;
+      const { items, paymentMethod, note } = createTransactionDto;
       const txManager = manager.getRepository(Transaction);
 
       const draftTx = txManager.create({
-        totalAmount,
+        totalAmount: 0,
         paymentMethod,
         note,
       });
       draftTx.metadata = { cashier: { id: user.id, email: user.email } };
       const tx = await txManager.save(draftTx);
 
-      await this.handleUpdateItem(items, tx, manager);
+      const { totalAmount, itemsTransaction } = await this.handleUpdateItem(
+        items,
+        tx,
+        manager,
+      );
+      await txManager.update(tx.id, {
+        totalAmount,
+        metadata: {
+          ...tx.metadata,
+          items: itemsTransaction.map((i) => ({
+            id: i.id,
+            quantity: i.quantity,
+            totalAmountPerItem: i.totalAmountPerItem,
+            item: {
+              id: i.item.id,
+              name: i.item.name,
+              code: i.item.code,
+              price: i.item.price,
+            },
+          })),
+        },
+      });
+
       await queryRunner.commitTransaction();
     } catch (error) {
       await queryRunner.rollbackTransaction();
@@ -159,5 +182,72 @@ export class TransactionService {
     }
   }
 
-  async update(id: number, updateTransactionDto: UpdateTransactionDto) {}
+  async handleUpdateTxItem(
+    items: UpdateItemTransactionDto[],
+    txItems: ItemTransaction[],
+    manager: EntityManager,
+  ) {
+    const itemManager = manager.getRepository(Item);
+    const ItemTxManager = manager.getRepository(ItemTransaction);
+
+    const newTxItems = txItems.map((txItem) => {
+      const selectedItem = items.find((i) => i.id === txItem.id);
+      if (!selectedItem) {
+        return txItem;
+      }
+      const qtyGap = selectedItem.quantity - txItem.quantity;
+
+      const newItem = txItem.item;
+      const newQuantity = newItem.quantity - qtyGap;
+      if (newQuantity <= 0) {
+        throw new BadRequestException(
+          `Item ${newItem.name} is out of stock, current stock is ${newItem.quantity}`,
+        );
+      }
+      itemManager.update(newItem.id, {
+        quantity: newQuantity,
+      });
+
+      const newData = {
+        ...txItem,
+        quantity: selectedItem.quantity,
+        totalAmountPerItem: txItem.item.price * selectedItem.quantity,
+      };
+      return newData;
+    });
+    const newTotalAmount = newTxItems.reduce(
+      (acc, txItem) => acc + txItem.totalAmountPerItem,
+      0,
+    );
+
+    await ItemTxManager.save(newTxItems);
+    return newTotalAmount;
+  }
+
+  async update(id: number, updateTransactionDto: UpdateTransactionDto) {
+    const { queryRunner, manager } = this.getQueryManagerWithTransaction();
+    try {
+      const { updateItems, paymentMethod, note } = updateTransactionDto;
+      const txManager = manager.getRepository(Transaction);
+
+      const foundTx = await this.findTransaction(id);
+      if (paymentMethod) foundTx.paymentMethod = paymentMethod;
+      if (note) foundTx.note = note;
+
+      const totalAmount = await this.handleUpdateTxItem(
+        updateItems!,
+        foundTx.itemTransactions,
+        manager,
+      );
+      foundTx.totalAmount = totalAmount;
+
+      await txManager.save(foundTx);
+      await queryRunner.commitTransaction();
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      handleError(error);
+    } finally {
+      await queryRunner.release();
+    }
+  }
 }

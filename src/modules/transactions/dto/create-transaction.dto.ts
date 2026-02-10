@@ -19,11 +19,6 @@ export class CreateTransactionDto {
   @IsString()
   paymentMethod: string;
 
-  @Type(() => Number)
-  @IsNotEmpty()
-  @IsInt()
-  totalAmount: number;
-
   @IsNotEmpty()
   @ValidateNested({ each: true })
   @Type(() => ItemTransactionDto)

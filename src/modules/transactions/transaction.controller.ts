@@ -38,7 +38,6 @@ export class TransactionController {
     @GetUser() user: User,
     @Body() createTransactionDto: CreateTransactionDto,
   ) {
-    console.log({ user });
     return this.transactionService.create(user, createTransactionDto);
   }
 
