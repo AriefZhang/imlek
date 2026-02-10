@@ -21,6 +21,7 @@
     "seed:run": "ts-node ./node_modules/typeorm-extension/bin/cli.cjs seed:run -d src/database/seeds/data-source.ts"
   },
   "dependencies": {
+    "@faker-js/faker": "^10.3.0",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.3",
     "@nestjs/core": "^11.0.1",
