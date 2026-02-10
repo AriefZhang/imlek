@@ -78,61 +78,46 @@ export class TransactionService {
     return tx;
   }
 
-  async handleCreateItemTransaction(
-    items: ItemTransactionDto[],
-    selectedItems: Item[],
-    tx: Transaction,
-    manager: EntityManager,
-  ) {
-    const itemTxManager = manager.getRepository(ItemTransaction);
-
-    const itemTransactions = selectedItems.map((item) => {
-      const purchasedItem = items.find((i) => i.id === item.id);
-      return itemTxManager.create({
-        item,
-        quantity: purchasedItem!.quantity,
-        totalAmountPerItem: item.price * purchasedItem!.quantity,
-        transaction: tx,
-      });
-    });
-
-    return await itemTxManager.save(itemTransactions);
-  }
-
   async handleUpdateItem(
     items: ItemTransactionDto[],
     tx: Transaction,
     manager: EntityManager,
   ) {
     const itemManager = manager.getRepository(Item);
-    const selectedItems = await itemManager.find({
-      where: { id: In(items.map((item) => item.id)) },
-    });
+    const selectedItems = await itemManager
+      .createQueryBuilder('item')
+      .setLock('pessimistic_write')
+      .where('item.id IN (:...ids)', {
+        ids: items.map((i) => i.id),
+      })
+      .getMany();
 
-    const itemsTransaction = await this.handleCreateItemTransaction(
-      items,
-      selectedItems,
-      tx,
-      manager,
-    );
+    if (selectedItems.length !== items.length) {
+      throw new BadRequestException('Some items not found');
+    }
 
-    const totalAmount = itemsTransaction.reduce(
-      (acc, item) => acc + item.totalAmountPerItem,
-      0,
-    );
+    const itemTxManager = manager.getRepository(ItemTransaction);
+    let totalAmount = 0;
 
-    const updatedItem = selectedItems.map((item) => {
-      const selectedItem = items.find((i) => i.id === item.id);
-      const newQuantity = item.quantity - selectedItem!.quantity;
-      if (newQuantity <= 0) {
-        throw new BadRequestException(
-          `Item ${item.name} is out of stock, current stock is ${item.quantity}`,
-        );
+    const itemsTransaction = selectedItems.map((item) => {
+      const selectedItem = items.find((i) => i.id === item.id)!;
+
+      if (item.quantity < selectedItem.quantity) {
+        throw new BadRequestException(`Item ${item.name} is out of stock`);
       }
-      return { ...item, quantity: newQuantity };
+
+      item.quantity -= selectedItem.quantity;
+      totalAmount += item.price * selectedItem.quantity;
+
+      return itemTxManager.create({
+        item,
+        quantity: selectedItem.quantity,
+        totalAmountPerItem: item.price * selectedItem.quantity,
+        transaction: tx,
+      });
     });
 
-    await itemManager.save(updatedItem);
+    await itemManager.save(selectedItems);
     return { totalAmount, itemsTransaction };
   }
 
