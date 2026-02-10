@@ -118,6 +118,7 @@ export class TransactionService {
     });
 
     await itemManager.save(selectedItems);
+    await itemTxManager.save(itemsTransaction);
     return { totalAmount, itemsTransaction };
   }
 
