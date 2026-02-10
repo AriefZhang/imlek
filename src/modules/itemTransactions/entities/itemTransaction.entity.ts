@@ -27,7 +27,11 @@ export class ItemTransaction extends BaseEntity {
   item: Item;
 
   @Exclude()
-  @ManyToOne((_type) => Transaction, (transaction) => transaction.id)
+  @ManyToOne(
+    (_type) => Transaction,
+    (transaction) => transaction.itemTransactions,
+    { onDelete: 'CASCADE' },
+  )
   @JoinColumn({ name: 'transaction_id' })
   transaction: Transaction;
 }

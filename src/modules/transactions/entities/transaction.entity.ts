@@ -17,10 +17,18 @@ export class Transaction extends BaseEntity {
   @Column()
   totalAmount: number;
 
+  @Column()
+  paymentMethod: string;
+
+  @Column()
+  note: string;
+
   @OneToMany(
     (_type) => ItemTransaction,
-    (itemTransaction) => itemTransaction.id,
+    (itemTransaction) => itemTransaction.transaction,
   )
-  @JoinColumn({ name: 'item_transaction_id' })
-  itemTransaction: ItemTransaction[];
+  itemTransactions: ItemTransaction[];
+
+  @Column({ type: 'jsonb', nullable: true })
+  metadata: Record<string, any>;
 }

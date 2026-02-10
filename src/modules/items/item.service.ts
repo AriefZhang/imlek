@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 
 import { ServicesBase } from '../../common/abstracts';
 import { DataSource } from 'typeorm';
@@ -26,7 +26,7 @@ export class ItemService {
   async getItemById(id: number): Promise<Item> {
     const item = await this.getRepository().findOne({ where: { id } });
     if (!item) {
-      throw new Error('Item not found');
+      throw new NotFoundException('Item not found');
     }
     return item;
   }
@@ -42,7 +42,7 @@ export class ItemService {
       });
 
       if (!stand) {
-        throw new Error('Stand not found');
+        throw new NotFoundException('Stand not found');
       }
 
       return await this.getRepository().save({ ...addItemDto, stand });
