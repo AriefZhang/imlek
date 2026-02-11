@@ -51,7 +51,7 @@ export class UsersRepository extends Repository<User> {
   async createUser(
     userCredentialsDto: UserCredentialsDto,
     manager: EntityManager,
-  ): Promise<User> {
+  ): Promise<any> {
     const userManager = manager.getRepository(User);
 
     const { email, password } = userCredentialsDto;
@@ -66,9 +66,9 @@ export class UsersRepository extends Repository<User> {
       password: hashedPassword,
       role: defaultRoles,
     });
-    await userManager.save(user);
+    const savedUser = await userManager.save(user);
 
-    return await this.getUserByEmail(email);
+    return { id: savedUser.id, email: savedUser.email, role: defaultRoles };
   }
 
   async getUserData(id: string): Promise<User> {
