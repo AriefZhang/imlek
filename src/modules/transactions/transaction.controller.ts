@@ -26,6 +26,12 @@ export class TransactionController {
     return this.transactionService.findAllTransaction(pageOptionsDto);
   }
 
+  @Get('income')
+  @UseGuards(JwtAuthAdminGuard)
+  findAllIncome() {
+    return this.transactionService.getAllIncome();
+  }
+
   @Get(':id')
   @UseGuards(JwtAuthGuard)
   findTransaction(@Param('id') id: string) {

@@ -122,6 +122,16 @@ export class TransactionService {
     return { totalAmount, itemsTransaction };
   }
 
+  async getAllIncome() {
+    return this.getRepository()
+      .createQueryBuilder('t')
+      .select('t.paymentMethod', 'paymentMethod')
+      .addSelect('SUM(t.totalAmount)', 'totalIncome')
+      .addSelect('COUNT(t.id)', 'totalTx')
+      .groupBy('t.paymentMethod')
+      .getRawMany();
+  }
+
   async create(user: User, createTransactionDto: CreateTransactionDto) {
     const { queryRunner, manager } = this.getQueryManagerWithTransaction();
     try {
