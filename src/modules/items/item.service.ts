@@ -34,7 +34,7 @@ export class ItemService {
   async getStandItems(id: number): Promise<Item[]> {
     return this.getRepository().find({
       where: { stand: { id } },
-      order: { code: 'ASC' },
+      order: { code: 'ASC', id: 'ASC' },
     });
   }
 
