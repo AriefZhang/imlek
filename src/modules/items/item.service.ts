@@ -32,7 +32,10 @@ export class ItemService {
   }
 
   async getStandItems(id: number): Promise<Item[]> {
-    return this.getRepository().find({ where: { stand: { id } } });
+    return this.getRepository().find({
+      where: { stand: { id } },
+      order: { code: 'ASC' },
+    });
   }
 
   async add(addItemDto: AddItemDto): Promise<any> {
