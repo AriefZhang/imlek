@@ -5,8 +5,15 @@ import { AuthModule } from './auth/auth.module';
 import { UserModule } from './users/user.module';
 import { ItemModule } from './items/item.module';
 import { TransactionModule } from './transactions/transaction.module';
+import { ItemTransactionModule } from './itemTransactions/itemTransaction.module';
 
-const importModules = [AuthModule, UserModule, ItemModule, TransactionModule];
+const importModules = [
+  AuthModule,
+  UserModule,
+  ItemModule,
+  TransactionModule,
+  ItemTransactionModule,
+];
 
 @Module({
   imports: importModules,
