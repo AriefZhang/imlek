@@ -1,17 +1,8 @@
-import {
-  Column,
-  Entity,
-  JoinColumn,
-  JoinTable,
-  ManyToMany,
-  ManyToOne,
-  OneToMany,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 import { BaseEntity } from '../../../common/abstracts';
 import { ItemTransaction } from '../../itemTransactions/entities/itemTransaction.entity';
-import { Voucher } from '../../voucher/entities/voucher.entity';
+import { TransactionVoucher } from '../../transactionVouchers/entities/transactionVoucher.entity';
 
 @Entity()
 export class Transaction extends BaseEntity {
@@ -20,6 +11,12 @@ export class Transaction extends BaseEntity {
 
   @Column()
   totalAmount: number;
+
+  @Column({ nullable: true, default: 0 })
+  totalItemValue: number;
+
+  @Column({ nullable: true, default: 0 })
+  totalVoucherValue: number;
 
   @Column()
   paymentMethod: string;
@@ -36,17 +33,6 @@ export class Transaction extends BaseEntity {
   @Column({ type: 'jsonb', nullable: true })
   metadata: Record<string, any>;
 
-  @ManyToMany(() => Voucher, (voucher) => voucher.transactions)
-  @JoinTable({
-    name: 'transaction_vouchers',
-    joinColumn: {
-      name: 'transaction_id',
-      referencedColumnName: 'id',
-    },
-    inverseJoinColumn: {
-      name: 'voucher_id',
-      referencedColumnName: 'id',
-    },
-  })
-  vouchers?: Voucher[];
+  @OneToMany(() => TransactionVoucher, (tv) => tv.transaction)
+  transactionVouchers: TransactionVoucher[];
 }

@@ -17,6 +17,8 @@ import { ItemTransaction } from '../itemTransactions/entities/itemTransaction.en
 import { User } from '../users/entities/user.entity';
 import { PageDto, PageMetaDto, PageOptionsDto } from 'src/app.dtos';
 import { UpdateItemTransactionDto } from './dto/update-item-transaction.dto';
+import { Voucher } from '../voucher/entities/voucher.entity';
+import { TransactionVoucher } from '../transactionVouchers/entities/transactionVoucher.entity';
 
 @Injectable()
 export class TransactionService {
@@ -132,10 +134,23 @@ export class TransactionService {
       .getRawMany();
   }
 
+  async getVoucher(id: number, manager: EntityManager) {
+    const voucherManager = manager.getRepository(Voucher);
+
+    const voucher = await voucherManager.findOne({
+      where: { id },
+    });
+
+    if (!voucher) {
+      throw new NotFoundException('Voucher not found');
+    }
+    return voucher;
+  }
+
   async create(user: User, createTransactionDto: CreateTransactionDto) {
     const { queryRunner, manager } = this.getQueryManagerWithTransaction();
     try {
-      const { items, paymentMethod, note } = createTransactionDto;
+      const { items, vouchers, paymentMethod, note } = createTransactionDto;
       const txManager = manager.getRepository(Transaction);
 
       const draftTx = txManager.create({
@@ -146,13 +161,50 @@ export class TransactionService {
       draftTx.metadata = { cashier: { id: user.id, email: user.email } };
       const tx = await txManager.save(draftTx);
 
+      let vouchersToSave: TransactionVoucher[] = [];
+      if (vouchers) {
+        const voucherManager = manager.getRepository(Voucher);
+        const txVoucherManager = manager.getRepository(TransactionVoucher);
+        const voucherIds = vouchers.map((v) => v.id);
+        const foundVouchers = await voucherManager
+          .createQueryBuilder('voucher')
+          .setLock('pessimistic_write')
+          .where('voucher.id IN (:...ids)', { ids: voucherIds })
+          .getMany();
+
+        if (foundVouchers.length !== vouchers.length) {
+          throw new BadRequestException('Some vouchers not found');
+        }
+
+        const txVoucher = foundVouchers.map((v) =>
+          txVoucherManager.create({
+            transaction: tx,
+            voucher: v,
+            quantity: vouchers.find((vcr) => vcr.id === v.id)!.quantity,
+          }),
+        );
+
+        await txVoucherManager.save(txVoucher);
+        await voucherManager.save(foundVouchers);
+
+        vouchersToSave = txVoucher;
+      }
+
+      const totalVoucherValue = vouchersToSave.reduce(
+        (a, b) => a + b.voucher.value * b.quantity,
+        0,
+      );
+
       const { totalAmount, itemsTransaction } = await this.handleUpdateItem(
         items,
         tx,
         manager,
       );
+
       await txManager.update(tx.id, {
-        totalAmount,
+        totalAmount: Math.max(totalAmount - totalVoucherValue, 0),
+        totalItemValue: totalAmount,
+        totalVoucherValue,
         metadata: {
           ...tx.metadata,
           items: itemsTransaction.map((i) => ({

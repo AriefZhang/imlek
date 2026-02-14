@@ -2,13 +2,12 @@ import { Type } from 'class-transformer';
 import {
   IsNotEmpty,
   IsString,
-  IsInt,
   IsOptional,
   ValidateNested,
   ArrayMinSize,
 } from 'class-validator';
 
-import { ItemTransactionDto } from './item-transaction.dto';
+import { ItemTransactionDto, VoucherTransactionDto } from './';
 
 export class CreateTransactionDto {
   @IsOptional()
@@ -24,4 +23,10 @@ export class CreateTransactionDto {
   @Type(() => ItemTransactionDto)
   @ArrayMinSize(1)
   items: ItemTransactionDto[];
+
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => VoucherTransactionDto)
+  @ArrayMinSize(0)
+  vouchers: VoucherTransactionDto[];
 }
