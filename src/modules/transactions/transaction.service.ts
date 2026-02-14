@@ -128,7 +128,9 @@ export class TransactionService {
     return this.getRepository()
       .createQueryBuilder('t')
       .select('t.paymentMethod', 'paymentMethod')
-      .addSelect('SUM(t.totalAmount)', 'totalIncome')
+      .addSelect('SUM(t.totalAmount)', 'totalCash')
+      .addSelect('SUM(t.totalItemValue)', 'totalIncome')
+      .addSelect('SUM(t.totalVoucherValue)', 'totalVoucher')
       .addSelect('COUNT(t.id)', 'totalTx')
       .groupBy('t.paymentMethod')
       .getRawMany();
