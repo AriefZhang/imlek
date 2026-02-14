@@ -70,7 +70,10 @@ export class TransactionService {
   async findTransaction(id: number) {
     const tx = await this.getRepository().findOne({
       where: { id },
-      relations: { itemTransactions: { item: true } },
+      relations: {
+        itemTransactions: { item: true },
+        transactionVouchers: { voucher: true },
+      },
     });
 
     if (!tx) {
