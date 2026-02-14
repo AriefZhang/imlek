@@ -2,12 +2,14 @@ import {
   Column,
   Entity,
   JoinColumn,
+  ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
 import { BaseEntity } from '../../../common/abstracts';
-import { ItemTransaction } from 'src/modules/itemTransactions/entities/itemTransaction.entity';
+import { ItemTransaction } from '../../itemTransactions/entities/itemTransaction.entity';
+import { Voucher } from '../../voucher/entities/voucher.entity';
 
 @Entity()
 export class Transaction extends BaseEntity {
@@ -31,4 +33,17 @@ export class Transaction extends BaseEntity {
 
   @Column({ type: 'jsonb', nullable: true })
   metadata: Record<string, any>;
+
+  @ManyToOne(() => Voucher, { nullable: true })
+  @JoinColumn({ name: 'voucher_id' })
+  voucher?: Voucher;
+
+  @Column({ nullable: true })
+  voucherCode?: string;
+
+  @Column({ nullable: true })
+  voucherType?: string;
+
+  @Column({ nullable: true })
+  voucherValue?: number;
 }
