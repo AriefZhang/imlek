@@ -2,7 +2,7 @@ import { Exclude } from 'class-transformer';
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 import { BaseEntity } from '../../../common/abstracts';
-import { Item } from 'src/modules/items/entities/item.entity';
+import { Item } from '../../items/entities/item.entity';
 
 @Entity()
 export class Stand extends BaseEntity {

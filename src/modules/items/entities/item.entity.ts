@@ -9,8 +9,8 @@ import {
 } from 'typeorm';
 
 import { BaseEntity } from '../../../common/abstracts';
-import { Stand } from 'src/modules/stands/entities/stand.entity';
-import { ItemTransaction } from 'src/modules/itemTransactions/entities/itemTransaction.entity';
+import { Stand } from '../../stands/entities/stand.entity';
+import { ItemTransaction } from '../../itemTransactions/entities/itemTransaction.entity';
 
 @Entity()
 export class Item extends BaseEntity {

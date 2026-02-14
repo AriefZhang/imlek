@@ -8,8 +8,8 @@ import {
 } from 'typeorm';
 
 import { BaseEntity } from '../../../common/abstracts';
-import { Item } from 'src/modules/items/entities/item.entity';
-import { Transaction } from 'src/modules/transactions/entities/transaction.entity';
+import { Item } from '../../items/entities/item.entity';
+import { Transaction } from '../../transactions/entities/transaction.entity';
 
 @Entity()
 export class ItemTransaction extends BaseEntity {
