@@ -2,6 +2,8 @@ import {
   Column,
   Entity,
   JoinColumn,
+  JoinTable,
+  ManyToMany,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -34,16 +36,17 @@ export class Transaction extends BaseEntity {
   @Column({ type: 'jsonb', nullable: true })
   metadata: Record<string, any>;
 
-  @ManyToOne(() => Voucher, { nullable: true })
-  @JoinColumn({ name: 'voucher_id' })
-  voucher?: Voucher;
-
-  @Column({ nullable: true })
-  voucherCode?: string;
-
-  @Column({ nullable: true })
-  voucherType?: string;
-
-  @Column({ nullable: true })
-  voucherValue?: number;
+  @ManyToMany(() => Voucher, (voucher) => voucher.transactions)
+  @JoinTable({
+    name: 'transaction_vouchers',
+    joinColumn: {
+      name: 'transaction_id',
+      referencedColumnName: 'id',
+    },
+    inverseJoinColumn: {
+      name: 'voucher_id',
+      referencedColumnName: 'id',
+    },
+  })
+  vouchers?: Voucher[];
 }

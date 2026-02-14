@@ -1,4 +1,7 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Exclude } from 'class-transformer';
+import { Column, Entity, ManyToMany, PrimaryGeneratedColumn } from 'typeorm';
+
+import { Transaction } from '../../transactions/entities/transaction.entity';
 
 @Entity()
 export class Voucher {
@@ -13,4 +16,8 @@ export class Voucher {
 
   @Column()
   value: number;
+
+  @Exclude()
+  @ManyToMany(() => Transaction, (tx) => tx.vouchers)
+  transactions: Transaction[];
 }
