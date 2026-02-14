@@ -1,10 +1,8 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 
-import { ServicesBase } from '../../common/abstracts';
-import { DataSource } from 'typeorm';
-import { InjectRepository } from '@nestjs/typeorm';
+import { DataSource, ILike } from 'typeorm';
 import { Item } from './entities/item.entity';
-import { AddItemDto, UpdateItemDto } from './dto';
+import { AddItemDto, QueryStandItemDto, UpdateItemDto } from './dto';
 import { Stand } from '../stands/entities/stand.entity';
 import { handleError } from 'src/common/errors';
 
@@ -31,9 +29,20 @@ export class ItemService {
     return item;
   }
 
-  async getStandItems(id: number): Promise<Item[]> {
+  async getStandItems(id: number, dto: QueryStandItemDto): Promise<Item[]> {
+    const keyword = dto.name?.trim() ?? '';
+
     return this.getRepository().find({
-      where: { stand: { id } },
+      where: [
+        {
+          stand: { id },
+          code: ILike(`%${keyword}%`),
+        },
+        {
+          stand: { id },
+          name: ILike(`%${keyword}%`),
+        },
+      ],
       order: { code: 'ASC', id: 'ASC' },
     });
   }
