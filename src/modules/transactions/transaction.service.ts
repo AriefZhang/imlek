@@ -3,11 +3,11 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { ServicesBase } from 'src/common/abstracts';
 import { DataSource, EntityManager, In, QueryRunner } from 'typeorm';
 import {
   CreateTransactionDto,
   ItemTransactionDto,
+  QueryIncomeDto,
   UpdateTransactionDto,
 } from './dto';
 import { Transaction } from './entities/transaction.entity';
@@ -127,16 +127,52 @@ export class TransactionService {
     return { totalAmount, itemsTransaction };
   }
 
-  async getAllIncome() {
-    return this.getRepository()
+  async getAllIncome(queryIncomeDto: QueryIncomeDto) {
+    const qb = this.getRepository()
       .createQueryBuilder('t')
       .select('t.paymentMethod', 'paymentMethod')
       .addSelect('SUM(t.totalAmount)', 'totalCash')
       .addSelect('SUM(t.totalItemValue)', 'totalIncome')
       .addSelect('SUM(t.totalVoucherValue)', 'totalVoucher')
-      .addSelect('COUNT(t.id)', 'totalTx')
-      .groupBy('t.paymentMethod')
-      .getRawMany();
+      .addSelect('COUNT(t.id)', 'totalTx');
+
+    if (queryIncomeDto.stand) {
+      qb.addSelect(
+        `
+        SUM(
+          COALESCE(
+            (
+              SELECT SUM(it.total_amount_per_item)
+              FROM item_transaction it
+              INNER JOIN item i ON i.id = it.item_id
+              WHERE it.transaction_id = t.id
+                AND i.stand_id = :standId
+            ),
+            0
+          )
+        )
+        `,
+        'totalCashPerStand',
+      );
+      qb.andWhere(
+        `
+      EXISTS (
+        SELECT 1
+        FROM item_transaction it
+        INNER JOIN item i ON i.id = it.item_id
+        WHERE it.transaction_id = t.id
+          AND i.stand_id = :standId
+      )
+    `,
+        {
+          standId: queryIncomeDto.stand,
+        },
+      );
+    }
+
+    qb.groupBy('t.paymentMethod');
+
+    return qb.getRawMany();
   }
 
   async getVoucher(id: number, manager: EntityManager) {

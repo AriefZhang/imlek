@@ -25,7 +25,6 @@ const jwtModuleConfig: JwtModuleAsyncOptions = {
     AuthService,
     JwtAuthGuard,
     JwtAuthAdminGuard,
-
     UserService,
     UsersRepository,
   ],

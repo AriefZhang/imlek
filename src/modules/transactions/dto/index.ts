@@ -3,3 +3,4 @@ export * from './item-transaction.dto';
 export * from './update-transaction.dto';
 export * from './update-item-transaction.dto';
 export * from './voucher-transaction.dto';
+export * from './query-income.dto';

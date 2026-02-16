@@ -10,7 +10,11 @@ import {
 } from '@nestjs/common';
 
 import { JwtAuthAdminGuard, JwtAuthGuard } from '../auth/guards';
-import { CreateTransactionDto, UpdateTransactionDto } from './dto';
+import {
+  CreateTransactionDto,
+  QueryIncomeDto,
+  UpdateTransactionDto,
+} from './dto';
 import { TransactionService } from './transaction.service';
 import { GetUser } from 'src/common/decorators';
 import { User } from '../users/entities/user.entity';
@@ -27,9 +31,9 @@ export class TransactionController {
   }
 
   @Get('income')
-  @UseGuards(JwtAuthAdminGuard)
-  findAllIncome() {
-    return this.transactionService.getAllIncome();
+  @UseGuards(JwtAuthGuard)
+  findAllIncome(@Query() queryIncomeDto: QueryIncomeDto) {
+    return this.transactionService.getAllIncome(queryIncomeDto);
   }
 
   @Get(':id')

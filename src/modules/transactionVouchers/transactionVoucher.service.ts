@@ -14,18 +14,37 @@ export class TransactionVoucherService {
     return this.dataSource.getRepository(TransactionVoucher);
   }
 
-  async getTxVouxherSummary(): Promise<any[]> {
-    return this.getRepository()
+  async getTxVoucherSummary(standId?: number): Promise<any[]> {
+    const qb = this.getRepository()
       .createQueryBuilder('tv')
       .innerJoin('tv.voucher', 'v')
+      .innerJoin('tv.transaction', 't')
       .select([
         'v.code AS code',
         'v.name AS name',
+        'v.value AS value',
         'SUM(tv.quantity) AS totalVoucher',
       ])
       .groupBy('v.code')
       .addGroupBy('v.name')
-      .orderBy('v.code', 'ASC')
-      .getRawMany();
+      .addGroupBy('v.value')
+      .orderBy('v.code', 'ASC');
+
+    if (standId) {
+      qb.andWhere((qb2) => {
+        const sub = qb2
+          .subQuery()
+          .select('1')
+          .from('item_transaction', 'it')
+          .innerJoin('item', 'i', 'i.id = it.item_id')
+          .where('it.transaction_id = t.id')
+          .andWhere('i.stand_id = :standId')
+          .getQuery();
+
+        return `EXISTS ${sub}`;
+      }).setParameter('standId', standId);
+    }
+
+    return qb.getRawMany();
   }
 }

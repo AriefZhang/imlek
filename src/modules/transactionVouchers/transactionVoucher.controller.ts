@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 
 import { JwtAuthGuard } from '../auth/guards';
 import { TransactionVoucherService } from './transactionVoucher.service';
@@ -9,7 +9,7 @@ export class TransactionVoucherController {
 
   @Get('summary')
   @UseGuards(JwtAuthGuard)
-  async getTxVouxherSummary(): Promise<any[]> {
-    return await this.itemService.getTxVouxherSummary();
+  async getTxVoucherSummary(@Query('stand') stand?: string): Promise<any[]> {
+    return await this.itemService.getTxVoucherSummary(Number(stand));
   }
 }
