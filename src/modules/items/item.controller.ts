@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
@@ -41,5 +42,11 @@ export class ItemController {
     @Body() updateItemDto: UpdateItemDto,
   ): Promise<Item> {
     return await this.itemService.update(Number(id), updateItemDto);
+  }
+
+  @Delete(':id')
+  @UseGuards(JwtAuthAdminGuard)
+  async delete(@Param('id') id: string) {
+    return await this.itemService.delete(Number(id));
   }
 }
