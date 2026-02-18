@@ -2,6 +2,7 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 
 import { DataSource } from 'typeorm';
 import { TransactionVoucher } from './entities/transactionVoucher.entity';
+import { QueryTxVoucherDto } from './dto/query-tx-voucher.dto';
 
 @Injectable()
 export class TransactionVoucherService {
@@ -14,7 +15,8 @@ export class TransactionVoucherService {
     return this.dataSource.getRepository(TransactionVoucher);
   }
 
-  async getTxVoucherSummary(standId?: number): Promise<any[]> {
+  async getTxVoucherSummary(dto: QueryTxVoucherDto): Promise<any[]> {
+    const { standId, date } = dto;
     const qb = this.getRepository()
       .createQueryBuilder('tv')
       .innerJoin('tv.voucher', 'v')
@@ -42,7 +44,11 @@ export class TransactionVoucherService {
           .getQuery();
 
         return `EXISTS ${sub}`;
-      }).setParameter('standId', standId);
+      }).setParameter('standId', Number(standId));
+    }
+
+    if (date) {
+      qb.andWhere('DATE(tv.createdAt) = :date', { date });
     }
 
     return qb.getRawMany();

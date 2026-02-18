@@ -8,9 +8,10 @@ import {
 
 import { Transaction } from '../../transactions/entities/transaction.entity';
 import { Voucher } from '../../voucher/entities/voucher.entity';
+import { BaseEntity } from 'src/common/abstracts';
 
 @Entity('transaction_vouchers')
-export class TransactionVoucher {
+export class TransactionVoucher extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 

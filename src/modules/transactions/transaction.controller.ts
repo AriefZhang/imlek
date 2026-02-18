@@ -19,6 +19,7 @@ import { TransactionService } from './transaction.service';
 import { GetUser } from 'src/common/decorators';
 import { User } from '../users/entities/user.entity';
 import { PageOptionsDto } from 'src/app.dtos';
+import { AllItemsDto } from './dto/all-items.dto';
 
 @Controller('transactions')
 export class TransactionController {
@@ -26,8 +27,8 @@ export class TransactionController {
 
   @Get('all')
   @UseGuards(JwtAuthGuard)
-  findAllTransaction(@Query() pageOptionsDto: PageOptionsDto) {
-    return this.transactionService.findAllTransaction(pageOptionsDto);
+  findAllTransaction(@Query() dto: AllItemsDto) {
+    return this.transactionService.findAllTransaction(dto);
   }
 
   @Get('income')

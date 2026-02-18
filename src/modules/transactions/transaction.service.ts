@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { DataSource, EntityManager, In, QueryRunner } from 'typeorm';
+import { Between, DataSource, EntityManager, In, QueryRunner } from 'typeorm';
 import {
   CreateTransactionDto,
   ItemTransactionDto,
@@ -19,6 +19,7 @@ import { PageDto, PageMetaDto, PageOptionsDto } from 'src/app.dtos';
 import { UpdateItemTransactionDto } from './dto/update-item-transaction.dto';
 import { Voucher } from '../voucher/entities/voucher.entity';
 import { TransactionVoucher } from '../transactionVouchers/entities/transactionVoucher.entity';
+import { AllItemsDto } from './dto/all-items.dto';
 
 @Injectable()
 export class TransactionService {
@@ -53,9 +54,23 @@ export class TransactionService {
   }
 
   async findAllTransaction(
-    pageOptionsDto: PageOptionsDto,
+    pageOptionsDto: AllItemsDto,
   ): Promise<PageDto<Transaction>> {
+    const { date } = pageOptionsDto;
+    const where: any = {};
+
+    if (date) {
+      const start = new Date(date);
+      start.setHours(0, 0, 0, 0);
+
+      const end = new Date(date);
+      end.setHours(23, 59, 59, 999);
+
+      where.createdAt = Between(start, end);
+    }
+
     const [entities, itemCount] = await this.getRepository().findAndCount({
+      where,
       relations: { itemTransactions: { item: true } },
       order: { createdAt: pageOptionsDto.order },
       skip: pageOptionsDto.skip,
@@ -168,6 +183,10 @@ export class TransactionService {
           standId: queryIncomeDto.stand,
         },
       );
+    }
+
+    if (queryIncomeDto.date) {
+      qb.andWhere('DATE(t.createdAt) = :date', { date: queryIncomeDto.date });
     }
 
     qb.groupBy('t.paymentMethod');

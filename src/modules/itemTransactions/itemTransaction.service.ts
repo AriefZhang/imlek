@@ -33,8 +33,10 @@ export class ItemTransactionService {
     dto: QuerySummaryStandItemDto,
   ): Promise<any[]> {
     const keyword = dto.name?.trim() ?? '';
+    const date = dto.date?.trim() ?? '';
+    console.log({ date });
 
-    return this.getRepository()
+    const qb = this.getRepository()
       .createQueryBuilder('it') // ItemTransaction
       .innerJoin('it.item', 'item')
       .innerJoin('item.stand', 'stand')
@@ -48,7 +50,15 @@ export class ItemTransactionService {
       .where('stand.id = :id', { id })
       .andWhere('(item.code ILIKE :keyword OR item.name ILIKE :keyword)', {
         keyword: `%${keyword}%`,
-      })
+      });
+
+    if (date) {
+      qb.andWhere('DATE(it.createdAt) = :date', {
+        date,
+      });
+    }
+
+    return qb
       .groupBy('item.code')
       .addGroupBy('item.name')
       .orderBy('item.code', 'ASC')

@@ -1,9 +1,9 @@
 import { IsOptional, IsString } from 'class-validator';
 
-export class QueryIncomeDto {
+export class QueryTxVoucherDto {
   @IsOptional()
   @IsString()
-  stand?: string;
+  standId?: string;
 
   @IsOptional()
   @IsString()

@@ -1,10 +1,7 @@
 import { IsOptional, IsString } from 'class-validator';
+import { PageOptionsDto } from 'src/app.dtos';
 
-export class QueryIncomeDto {
-  @IsOptional()
-  @IsString()
-  stand?: string;
-
+export class AllItemsDto extends PageOptionsDto {
   @IsOptional()
   @IsString()
   date?: string;
